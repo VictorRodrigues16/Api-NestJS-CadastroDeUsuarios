@@ -6,11 +6,14 @@ import { UsuarioEntity } from './usuario.entity';
 import { v4 as uuid } from 'uuid'
 import { listaUsuarioDTO } from './dto/ListaUsuario.dto';
 import { AtualizaUsuarioDTO } from './dto/AtualizaUsuario.dto';
+import { UsuarioService } from './usuario.service';
 
 @Controller('/usuarios')
 export class UsuarioController {
 
-    constructor(private usuarioRepository: UsuarioRepository) {}
+    constructor(
+        private usuarioService: UsuarioService
+    ) {}
 
     @Post()
     async criaUsuario(@Body() dadosDoUsuario: CriaUsuarioDTO) {
@@ -21,7 +24,7 @@ export class UsuarioController {
         usuarioEntity.password = dadosDoUsuario.senha;
         usuarioEntity.id = uuid();
 
-        this.usuarioRepository.salvar(usuarioEntity)
+        this.usuarioService.criaUsuario(usuarioEntity)
        
          return {
             status: true,
@@ -33,20 +36,13 @@ export class UsuarioController {
 
     @Get()
     async listaUsuarios() {
-        const usuariosSalvos = await this.usuarioRepository.listar()
-        const usuariosListas = usuariosSalvos.map(
-            usuario => new listaUsuarioDTO(
-                usuario.id,
-                usuario.nome
-            )
-        )
-
-        return usuariosListas
+        const usuariosSalvos = await this.usuarioService.listaUsuarios()
+        return usuariosSalvos
     }
 
     @Put('/:id')
     async atualizaUsuario(@Param('id') id:string, @Body() novosDados: AtualizaUsuarioDTO){
-        const usuarioAtualiado = await this.usuarioRepository.atualiza(id, novosDados)
+        const usuarioAtualiado = await this.usuarioService.atualizaUsuario(id, novosDados)
 
         return {
             usuario: usuarioAtualiado,
@@ -56,7 +52,7 @@ export class UsuarioController {
 
     @Delete('/:id')
     async removeUsuario(@Param('id') id: string) {
-        const usuarioRemovido = await this.usuarioRepository.remove(id)
+        const usuarioRemovido = await this.usuarioService.deleteUsuario(id)
 
         return{
             usuario: usuarioRemovido,
